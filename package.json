@@ -1,0 +1,16 @@
+{
+  "name": "webhook-queue",
+  "author": "Daniel Smith <dan@filemaker.consulting>",
+  "scripts": {
+    "setup": "npm install && cd layers/fmsApiClient/nodejs/ && npm install && cd ../../..",
+    "deploy": "serverless deploy -s production --verbose"
+  },
+  "devDependencies": {
+    "serverless-domain-manager": "^6.4.4",
+    "serverless-lift": "^1.27.0"
+  },
+  "dependencies": {
+    "js-base64": "^3.7.2",
+    "query-string": "^7.1.1"
+  }
+}

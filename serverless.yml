@@ -1,0 +1,67 @@
+service: webhook-queue
+frameworkVersion: '3'
+useDotenv: true
+
+provider:
+  name: aws
+  deploymentMethod: direct
+  runtime: nodejs14.x
+  region: ${env:AWS_REGION}
+  profile: ${env:AWS_PROFILE}
+  httpApi:
+    cors: true
+  logRetentionInDays: 30
+  versionFunctions: false
+
+plugins:
+  - serverless-domain-manager
+  - serverless-lift
+
+layers:
+  fmsApiClient:
+    path: layers/fmsApiClient
+    description: https://github.com/Luidog/fms-api-client
+    compatibleRuntimes:
+      - nodejs14.x
+
+custom:
+  customDomain:
+    domainName: ${env:WEBHOOK_DOMAIN_NAME}
+    apiType: http
+    endpointType: regional
+    stage: ${sls:stage}
+    securityPolicy: tls_1_2
+    createRoute53Record: false
+    createRoute53IPv6Record: false
+
+constructs:
+  queue:
+    type: queue
+    fifo: true
+    maxRetries: 6
+    alarm: ${env:ALARM_EMAIL}
+    extensions:
+      queue:
+        Properties:
+          VisibilityTimeout: 300
+    worker:
+      memorySize: 256
+      handler: src/process-queue.handler
+      layers:
+        - !Ref FmsApiClientLambdaLayer
+      environment:
+        FMS_SERVER: ${env:FMS_SERVER}
+        FMS_DATABASE: ${env:FMS_DATABASE}
+        FMS_USER: ${ssm:/FileMaker-serverless-webhook-queue/fmsUser}
+        FMS_PASS: ${ssm:/FileMaker-serverless-webhook-queue/fmsPass}
+
+functions:
+  addToQueue:
+    memorySize: 256
+    handler: src/add-to-queue.handler
+    environment:
+        QUEUE_URL: ${construct:queue.queueUrl}
+    events:
+      - httpApi:
+          path: ${env:BASE_PATH}/{path+}
+          method: '*'

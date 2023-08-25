@@ -1,0 +1,16 @@
+{
+  "name": "fms-api-client",
+  "version": "2.3.4",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Luidog/fms-api-client"
+  },
+  "author": "Luidog",
+  "dependencies": {
+    "fms-api-client": "^2.3.4"
+  }
+}
